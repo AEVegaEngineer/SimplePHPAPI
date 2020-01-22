@@ -1,11 +1,11 @@
 <?php
 class User{
  
-    // database connection and table name
+    // nomb re de tablas y conexión a base de datos
     private $conn;
     private $table_name = "products";
  
-    // object properties
+    // propiedades de objetos
     public $id;
     public $name;
     public $description;
@@ -14,23 +14,40 @@ class User{
     public $category_name;
     public $created;
  
-    // constructor with $db as database connection
+    // constructor de conexión a base de datos con $db
     public function __construct($db){
         $this->conn = $db;
     }
-    // read products
+    // leer usuario_
     function read(){
      
-        // select all query
-        $query = "SELECT * from usuarios_";
+        // Ejecuta el select
+        $query = "SELECT * from usuario_ where login = '10'";
      
-        // prepare query statement
+        // Prepara la sentencia query
         $stmt = $this->conn->prepare($query);
      
-        // execute query
+        // Ejecuta query
+        $stmt->execute();
+     
+        return $stmt;
+    }
+    function login($username,$pass){
+        // Codifica el pass con md5 para compararlo con el pass del usuario en bd, (md5 no tiene desencripción)
+        $encoded_pass = md5($pass);
+
+        //Ejecuta el select del usuario para verificar el login
+
+        $query = "SELECT * from usuario_ where login = '".$username."' AND pass = '".$encoded_pass."'";
+     
+        // Prepara la sentencia query
+        $stmt = $this->conn->prepare($query);
+     
+        // Ejecuta query
         $stmt->execute();
      
         return $stmt;
     }
 }
+
 ?>
