@@ -15,16 +15,18 @@ use Firebase\JWT\JWT;
 $usuarios = new User($db);
  
 // query usuarios
-$stmt = $usuarios->login('10','10');
+$credenciales = (json_decode(file_get_contents("php://input"), true));
+$stmt = $usuarios->login($credenciales["username"], $credenciales["password"]);
 $num = $stmt->rowCount();
  
+//setea time para llevar el tiempo del token
+$time = time();
 // revisa si se encontró algún registro
 if($num>0){
  
     // array de usuarios que se codificarán en el token
     $token=array();
-    $token["data"]=array();
-    $time = time();
+    
     // trae tabla de contenido
     // fetch() es mas rápido que fetchAll()
     // http://stackoverflow.com/questions/2770630/pdofetchall-vs-pdofetch-in-a-loop
@@ -33,21 +35,16 @@ if($num>0){
         // esto convierte $row['name'] a
         // solo $name
         extract($row);    
-        $objeto_usuario=array(
-            "id" => $id,
-            "login" => $login,
-            /*"pass" => $pass,*/
-            "estado" => html_entity_decode($estado),
-            "tipo" => $tipo,
-            "fk_personal" => $fk_personal
-        );  
+        
+        $token["id"] = $id;
+        $token["login"] = $login;
+        $token["estado"] = html_entity_decode($estado);
+        $token["tipo"] = $tipo;
+        $token["fk_personal"] = $fk_personal;
+
+
         $token["iat"] = $time;  
         $token["exp"] = $time + (60*60);
-        /*
-        array_push($token["iat"], $time);//tiempo de inicio del token
-        array_push($token["exp"], $time + (60*60));//tiempo de expiración del token (1 hora despues del inicio)
-        */
-        array_push($token["data"], $objeto_usuario);
     }
     //Codifica Token para el login usando HS256
 
@@ -67,8 +64,16 @@ else
 { 
     // Establece código de respuesta - 404 Not found
     http_response_code(404);
-    echo json_encode(
-        array("message" => "No se encontraron usuarios.")
-    );
+    // envía un usuario vacío      
+    $token["id"] = null;
+    $token["login"] = null;
+    $token["estado"] = null;
+    $token["tipo"] = null;
+    $token["fk_personal"] = null;
+
+    $token["iat"] = $time;  
+    $token["exp"] = $time + (60*60);        
+    
+    echo json_encode($token);
 }
 
