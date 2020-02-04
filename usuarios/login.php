@@ -1,13 +1,13 @@
 <?php
-include_once '/templates/header-users.php';
- 
-// incluyo archivos de base de datos y objeto
-include_once '../config/database.php';
-include_once '../usuarios/objects.php';
- 
-include_once '/templates/instanciar_objetos_db.php';
+//template para consultas
+include_once '../templates/header_consultas.php';
 
-require_once '../vendor/autoload.php';
+// generate json web token
+include_once '../config/core.php';
+include_once '../vendor/firebase/php-jwt/src/BeforeValidException.php';
+include_once '../vendor/firebase/php-jwt/src/ExpiredException.php';
+include_once '../vendor/firebase/php-jwt/src/SignatureInvalidException.php';
+include_once '../vendor/firebase/php-jwt/src/JWT.php';
 
 use Firebase\JWT\JWT;
 
@@ -30,50 +30,48 @@ if($num>0){
     // trae tabla de contenido
     // fetch() es mas rápido que fetchAll()
     // http://stackoverflow.com/questions/2770630/pdofetchall-vs-pdofetch-in-a-loop
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-        // extrae línea
-        // esto convierte $row['name'] a
-        // solo $name
-        extract($row);    
-        
-        $token["id"] = $id;
-        $token["login"] = $login;
-        $token["estado"] = html_entity_decode($estado);
-        $token["tipo"] = $tipo;
-        $token["fk_personal"] = $fk_personal;
+    
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    extract($row);
 
+    $token = array(
+        "iat" => $iat,
+        "data" => array(
+            "id" => $id,
+            "login" => $login,
+            "estado" => $estado,
+            "tipo" => $tipo,
+            "fk_personal" => $fk_personal
+       )
+    );
 
-        $token["iat"] = $time;  
-        $token["exp"] = $time + (60*60);
-    }
-    //Codifica Token para el login usando HS256
-
-    $key = 'Colegio_de_Medicos_19422581';
-
-    $jwt = JWT::encode($token, $key);
-
-    $data = JWT::decode($jwt, $key, array('HS256'));
-
-    // Establece código de respuesta - 200 OK
+    // establece el código de respuesta
     http_response_code(200);
- 
-    // Muestra data de usuarios en formato json
-    echo json_encode($data);
+    //lave del token
+    //$key = 'Colegio_de_Medicos_19422581';
+    // genera jwt
+    $jwt = JWT::encode($token, $key);
+    echo json_encode(
+            array(
+                "message" => "OK",
+                "id" => $id,
+                "jwt" => $jwt
+            )
+        );
 } 
 else
 { 
-    // Establece código de respuesta - 404 Not found
-    http_response_code(404);
-    // envía un usuario vacío      
+    // Establece código de respuesta - 404 Unauthorized
+    http_response_code(401);
+    // envía un usuario vacío
+    /*      
     $token["id"] = null;
     $token["login"] = null;
     $token["estado"] = null;
     $token["tipo"] = null;
-    $token["fk_personal"] = null;
-
-    $token["iat"] = $time;  
-    $token["exp"] = $time + (60*60);        
-    
+    $token["fk_personal"] = null;   
     echo json_encode($token);
+    */
+    echo json_encode(array("message" => "FAIL"));
 }
 

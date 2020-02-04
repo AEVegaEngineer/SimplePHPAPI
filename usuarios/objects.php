@@ -3,16 +3,6 @@ class User{
  
     // nomb re de tablas y conexión a base de datos
     private $conn;
-    private $table_name = "products";
- 
-    // propiedades de objetos
-    public $id;
-    public $name;
-    public $description;
-    public $price;
-    public $category_id;
-    public $category_name;
-    public $created;
  
     // constructor de conexión a base de datos con $db
     public function __construct($db){
@@ -48,6 +38,30 @@ class User{
      
         return $stmt;
     }
+}
+class Notificacion{
+    // nombre de tablas y conexión a base de datos
+    private $conn;
+ 
+    // constructor de conexión a base de datos con $db
+    public function __construct($db){
+        $this->conn = $db;
+    }
+    // leer notiticaciones
+    function traerNotificaciones($user){
+     
+        // Ejecuta el select
+        $query = "SELECT * from app_notif_cuerpo where user = '".$user."'";
+     
+        // Prepara la sentencia query
+        $stmt = $this->conn->prepare($query);
+     
+        // Ejecuta query
+        $stmt->execute();
+     
+        return $stmt;
+    }
+
 }
 
 ?>
