@@ -47,33 +47,16 @@ if($jwt){
             // array de notif que se codificarán en la respuesta
             $respuesta=array();
             
-            // trae tabla de contenido
+            // trae notificaciones
             // fetch() es mas rápido que fetchAll()
-            // http://stackoverflow.com/questions/2770630/pdofetchall-vs-pdofetch-in-a-loop
-            
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            extract($row);
-            $notif_array = [];
-
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                // extrae línea
-                extract($row);    
-                $respuesta = array(
-                    "id_notif_cuerpo" => $id_notif_cuerpo,
-                    "fk_cabecera" => $fk_cabecera,
-                    "user" => $user,
-                    "asunto" => $asunto,
-                    "estado" => $estado,
-                    "mensaje" => $mensaje,
-                );
-         
-                array_push($notif_array, $respuesta);
+            // http://stackoverflow.com/questions/2770630/pdofetchall-vs-pdofetch-in-a-loop            
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){                
+                array_push($respuesta, $row);                
             }
-
             // establece el código de respuesta
             http_response_code(200);
-            
-            echo json_encode($notif_array);
+            // retorna las notificaciones en json
+            echo json_encode($respuesta);
         } 
         else
         { 

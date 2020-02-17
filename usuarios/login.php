@@ -18,21 +18,31 @@ $usuarios = new User($db);
 $credenciales = (json_decode(file_get_contents("php://input"), true));
 $stmt = $usuarios->login($credenciales["username"], $credenciales["password"]);
 $num = $stmt->rowCount();
+
+
  
 //setea time para llevar el tiempo del token
 $time = time();
 // revisa si se encontró algún registro
 if($num>0){
- 
-    // array de usuarios que se codificarán en el token
-    $token=array();
-    
     // trae tabla de contenido
     // fetch() es mas rápido que fetchAll()
     // http://stackoverflow.com/questions/2770630/pdofetchall-vs-pdofetch-in-a-loop
     
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    
+    
+    // array de usuarios que se codificarán en el token
+    $token=array();
+    
+    // extrae la información del $row
     extract($row);
+
+    //Revisa los dispositivos asociados al usuario logeado, si el dispositivo actual no existe lo registra como perteneciente al usuario
+    $devices = new Device($db);
+    $AuthDevices = $devices->AuthenticateDevices($id, $credenciales["deviceId"]);
+
 
     $token = array(
         "iat" => $iat,
@@ -48,7 +58,6 @@ if($num>0){
     // establece el código de respuesta
     http_response_code(200);
     //lave del token
-    //$key = 'Colegio_de_Medicos_19422581';
     // genera jwt
     $jwt = JWT::encode($token, $key);
     echo json_encode(
@@ -63,15 +72,6 @@ else
 { 
     // Establece código de respuesta - 404 Unauthorized
     http_response_code(401);
-    // envía un usuario vacío
-    /*      
-    $token["id"] = null;
-    $token["login"] = null;
-    $token["estado"] = null;
-    $token["tipo"] = null;
-    $token["fk_personal"] = null;   
-    echo json_encode($token);
-    */
     echo json_encode(array("message" => "FAIL"));
 }
 
