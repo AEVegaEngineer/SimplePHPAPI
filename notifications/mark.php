@@ -20,6 +20,7 @@ $data = json_decode(file_get_contents("php://input"));
  
 // obtener jwt
 $jwt=isset($data->jwt) ? $data->jwt : "";
+$id=isset($data->id) ? $data->id : "";
  
 // if jwt is not empty
 
@@ -29,40 +30,27 @@ if($jwt){
     try {
         // decodifica jwt
         $decoded = JWT::decode($jwt, $key, array('HS256'));
-        $id_usuario = $decoded->data->id;
-
- 		// muestra las notificaciones
-        //echo json_encode($decoded->data);
-        /**************************************/
+        
         // inicializa objetos
         $notif = new Notificacion($db);
          
         // query notif
-        $stmt = $notif->traerNotificaciones($id_usuario);
-        $num = $stmt->rowCount();
-        
-        // revisa si se encontró algún registro
-        if($num>0){
-         
-            // array de notif que se codificarán en la respuesta
-            $respuesta=array();
-            
-            // trae notificaciones
-            // fetch() es mas rápido que fetchAll()
-            // http://stackoverflow.com/questions/2770630/pdofetchall-vs-pdofetch-in-a-loop            
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){                
-                array_push($respuesta, $row);                
-            }
+        $stmt = $notif->leerNotificacion($id);
+                
+        // revisa si el token fue decodificado correctamente
+        //if($decoded)        
+        if($stmt == "OK")
+        {            
+            echo json_encode(array(
+            "message" => "Notificación ".$id." leída"));
             // establece el código de respuesta
             http_response_code(200);
-            // retorna las notificaciones en json
-            echo json_encode($respuesta);
         } 
         else
         { 
             // Establece código de respuesta - 404 Not Found
             http_response_code(404);
-            echo json_encode(array("message" => "OBTENCIÓN DE DATA FALLIDA"));
+            echo json_encode(array("message" => "ACTUALIZACIÓN DE DATA FALLIDA"));
         }
 
         /**************************************/

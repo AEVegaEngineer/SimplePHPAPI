@@ -31,9 +31,21 @@ class Notificacion{
         $this->conn = $db;
     }
     // leer notiticaciones
+    function leerNotificacion($id_cuerpo){
+        // Ejecuta el select
+        date_default_timezone_set('America/Argentina/San_Juan');
+        $date = date('Y-m-d h:i:s', time());
+        $query = "UPDATE app_notif_cuerpo set estado = 1, f_hs_leido = '".$date."' where id_cuerpo = ".intval($id_cuerpo);
+        $stmt = $this->conn->prepare($query); 
+        $stmt->execute(); 
+        //return $query;
+        return "OK";
+    }
+
+    // leer notiticaciones
     function traerNotificaciones($user){
         // Ejecuta el select
-        $query = "SELECT * from app_notif_cuerpo as cu join app_notif_cabecera as ca on cu.fk_cabecera = ca.id_cabecera where cu.fk_user_objetivo = '".$user."'";
+        $query = "SELECT * from app_notif_cuerpo as cu join app_notif_cabecera as ca on cu.fk_cabecera = ca.id_cabecera where cu.fk_user_objetivo = '".$user."' ";//and estado = 0
         $stmt = $this->conn->prepare($query); 
         $stmt->execute(); 
         return $stmt;
@@ -49,12 +61,12 @@ class Device{
     }
 
     function AuthenticateDevices($user_id,$deviceid){
-        $query = "SELECT * from usuario_ as u join app_user_devices as d on u.id = d.user_id where u.id = '".$user_id."' and d.deviceid = '".$deviceid."';";
+        $query = "SELECT * from usuario_ as u join app_user_devices as d on u.id = d.user_id where u.id = ".$user_id." and d.deviceid = '".$deviceid."';";
         $stmt = $this->conn->prepare($query);
         $stmt->execute(); 
 
         if($stmt->rowCount() < 1) {
-            $query2 = "INSERT INTO `intranet`.`app_user_devices` (`user_id`, `deviceid`) VALUES ('".$user_id."', '".$deviceid."');";
+            $query2 = "INSERT INTO `intranet`.`app_user_devices` (`user_id`, `deviceid`) VALUES (".$user_id.", '".$deviceid."');";
             $stmt2 = $this->conn->prepare($query2); 
             $stmt2->execute();
             return $stmt2; 
